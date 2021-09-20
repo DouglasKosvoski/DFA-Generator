@@ -22,17 +22,46 @@ def verify_args():
         print("""Unexpected number of arguments:
         One file as input to the program is required
         Try: `python3 main.py <input.in>`""")
-        return 0
+        exit()
 
 def main():
     """ Main program function, responsible for calling all other methods and constructors """
     verify_args()
+        
 
     # name of the file with the GR and tokens
     filename = str(argv[1])
-    automata = Automata(filename, debug=True)
+    automata = Automata(filename, debug=False)
 
 if __name__ == "__main__":
 	"""	blocks other script from calling this main.py file
 	only this file can call itself """
 	main()
+
+# Exemplo
+# dict = {
+#   nao_terminal/id = {
+#     a = {
+#       n terminais,
+#       n terminais,
+#     }
+#     b = {
+#       n terminais
+#     }
+# 
+#   }
+# }
+# 
+# dict = {
+#   S = {
+#     a = {
+#       B
+#     }
+#     c = {
+#       C
+#     }
+#     d = {
+#       C
+#     }
+#   }
+# }

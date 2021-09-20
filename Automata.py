@@ -3,7 +3,8 @@ class Automata():
         """ Constructor """
         self.filename = filename
         self.debug = debug
-
+        self.last_id = -1
+        
         # raw file data
         self.data = self.clean_file_data(self.filename)
         # data sorted into a 2D array with tokens and grammar rules
@@ -13,11 +14,15 @@ class Automata():
         # basically remove all non important characters from every rule
         # the list with this 'non important' characters are inside the function
         self.grammar_rules = self.clean_rules(self.grammar_rules)
-
+        self.add_rules_to_dict(self.grammar_rules, self.last_id)
+        
+        # for gr in self.grammar_rules:
+        #     print(gr)
+        
         if (self.debug):
             print("\nInput filename: \n\t{}".format(self.filename))
             print("\nConteudo do arquivo:\n\t{}".format(self.data))
-            print("\nConteudo dividido entre token e GR:\n\t{}".format(self.data_splitted))
+            print("\nConteudo dividido entre token e GR:\n\tTokens:\t{}\n\tGR:\t{}".format(self.data_splitted[0], self.data_splitted[1]))
 
     def clean_file_data(self, filename):
         """
@@ -56,10 +61,10 @@ class Automata():
                 print("\t'{0}' is a Token".format(line))
             return 0
 
-    def write_data_to_csv(self, data):
-    	from write_csv import WriteCSV
-    	csv_writer = WriteCSV()
-    	csv_writer.write_content_to_file(data)
+    # def write_data_to_csv(self, data):
+    	# from write_csv import WriteCSV
+    	# csv_writer = WriteCSV()
+    	# csv_writer.write_content_to_file(data)
     
     def separate_token_and_rules(self, data):
         """
@@ -82,27 +87,43 @@ class Automata():
     def clean_rules(self, rules_list):
         """ 
         Filter garbage from the grammar rule, such as common formating, separators etc
-        input: list of rules
-        output: cleaned list of rules
+            input: list of rules
+            output: cleaned list of rules
         """
-        list_of_clean_rules = []
-        list_of_separators = ["::=", "<", ">", "|"]
-        for rule in rules_list:
-            for separator in list_of_separators:
-                rule = rule.replace(separator, "")
-                # remove all empty object from the rule
-            list_of_clean_rules.append(list(filter(lambda a:a != "", rule.split(" "))))
-        return list_of_clean_rules
+        cleaned_rules = []
+        separators = ["::=", "<", ">", "|"]
+        
+        # for each rule in the list
+        for i in range(len(rules_list)):
+            temp_rule = rules_list[i]
+            
+            # remove the separator
+            for separator in separators:
+                temp_rule = temp_rule.replace(separator, "")
+            # remove empty spaces
+            
+            temp_rule = temp_rule.split(" ")
+            rule = [j for j in temp_rule if j!=""]
+            cleaned_rules.append(rule)
+        return cleaned_rules
 
     def add_rules_to_dict(self, rules_list, id):
         """ Input: arg1 list of GR rules, arg2 identifier """
+
         table = {}
-        for i in range(len(rules_list)):
-            for j in range(len(rules_list[i])):
-                pass
-                # print(rules_list[i][j])
-                # table[id] = str(rules_list[i][j])+str(id+1)
-                # id += 1
+        for rule in rules_list:
+            # insere no final da estrutura
+            nao_terminal = -1 if (ord(rule[0])-65)==18 else ord(rule[0])-65
+            froms = {rule[i][0] : rule[i][-1] for i in range(1, len(rule))}
+            print(froms)
+
+            new_entry = {
+                nao_terminal : froms
+            }
+            table.update(new_entry)
+            id += 1
+
+        print("\n\nMy table", table)
         return table
     
     def add_tokens_to_dict(self, token_list, id):
