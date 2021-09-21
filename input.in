@@ -1,2 +1,2 @@
-S ::= aB | cC | dC
-A ::= aB | cC | dC
+A ::= aB | bC | aF
+

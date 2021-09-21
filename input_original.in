@@ -4,3 +4,7 @@ B ::= bD | cC | dC
 C ::= dD | e
 D ::= bB | bC
 E ::= bB | cA
+
+teste
+alo
+salve

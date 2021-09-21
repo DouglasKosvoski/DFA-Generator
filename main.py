@@ -37,31 +37,3 @@ if __name__ == "__main__":
 	"""	blocks other script from calling this main.py file
 	only this file can call itself """
 	main()
-
-# Exemplo
-# dict = {
-#   nao_terminal/id = {
-#     a = {
-#       n terminais,
-#       n terminais,
-#     }
-#     b = {
-#       n terminais
-#     }
-# 
-#   }
-# }
-# 
-# dict = {
-#   S = {
-#     a = {
-#       B
-#     }
-#     c = {
-#       C
-#     }
-#     d = {
-#       C
-#     }
-#   }
-# }

@@ -4,6 +4,7 @@ class Automata():
         self.filename = filename
         self.debug = debug
         self.last_id = -1
+        self.table = {}
         
         # raw file data
         self.data = self.clean_file_data(self.filename)
@@ -14,15 +15,23 @@ class Automata():
         # basically remove all non important characters from every rule
         # the list with this 'non important' characters are inside the function
         self.grammar_rules = self.clean_rules(self.grammar_rules)
-        self.add_rules_to_dict(self.grammar_rules, self.last_id)
+        self.table = self.add_rules_to_dict(self.grammar_rules, self.last_id)
         
-        # for gr in self.grammar_rules:
-        #     print(gr)
+        # self.resolve_conflito(self.table)
         
         if (self.debug):
             print("\nInput filename: \n\t{}".format(self.filename))
             print("\nConteudo do arquivo:\n\t{}".format(self.data))
-            print("\nConteudo dividido entre token e GR:\n\tTokens:\t{}\n\tGR:\t{}".format(self.data_splitted[0], self.data_splitted[1]))
+            print("\nConteudo dividido entre token e GR:\n\tTokens:\t{}\n\tGR:\t{}\n\n".format(self.data_splitted[0], self.data_splitted[1]))
+            self.print_dict(self.table, 0)
+
+    def resolve_conflito(self, table):
+        for key in table:
+            print(key, end=" | ")
+            for asd in table[key]:
+                print(asd, end=" ")
+            print()
+        pass
 
     def clean_file_data(self, filename):
         """
@@ -112,20 +121,24 @@ class Automata():
 
         table = {}
         for rule in rules_list:
-            # insere no final da estrutura
-            nao_terminal = -1 if (ord(rule[0])-65)==18 else ord(rule[0])-65
-            froms = {rule[i][0] : rule[i][-1] for i in range(1, len(rule))}
-            print(froms)
-
-            new_entry = {
-                nao_terminal : froms
-            }
-            table.update(new_entry)
+            identificador = rule[0]
+            regras = {}
+            
+            nao_terminais = [{str(rule[i][0]) : rule[i][-1]} for i in range(1, len(rule))]
+            regras.update({identificador : nao_terminais})
+            # regras = {
+            #     nao_terminal : {
+            #         str(rule[i][0])+str(i) : rule[i][-1]
+            #         for i in range(1, len(rule))
+            #     }
+            # }
+            table.update(regras)
             id += 1
-
-        print("\n\nMy table", table)
+            
+        for key in table:
+            print(f'KEY: {key} \t VALUE: {table[key]}')
         return table
-    
+        
     def add_tokens_to_dict(self, token_list, id):
         """ Input: arg1 list of tokens, arg2 identifier """
         table = {}
@@ -139,13 +152,19 @@ class Automata():
                     id += 1
         return table
 
-    def print_dict(self, dd):
+    def print_dict(self, dd, indent=0):
         """ 
         Print dictionary in a (key, data) format
         input: dictionary type
         output: print data to terminal
         """
         # basic custom print for the dictionary
-        for key, rule in dd.items():
-            if (self.debug):
-                print("Identifier: {0}\n\tRules: {1}".format(key, rule))
+        # for key, rule in dd.items():
+        #     print("Identifier: {0}\n\tRules: {1}".format(key, rule))
+        spacing = "    "
+        for key, value in dd.items():
+            print(spacing * indent + str(key))
+            if isinstance(value, dict):
+                self.print_dict(value, indent+1)
+            else:
+                print(spacing * (indent+1) + str(value))
