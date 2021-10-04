@@ -2,7 +2,8 @@ S ::= aB | cC | dC
 A ::= bC | aE
 B ::= bD | cC | dC
 C ::= dD | e
-D ::= bB | bC
+
+D ::= bB | bC | aE | cC
 E ::= bB | cA
 
 teste

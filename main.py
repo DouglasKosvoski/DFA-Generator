@@ -7,13 +7,12 @@ Email: douglas.contactpro@gmail.com
 
   Construction of an application to construct, determinate and minify
   (eliminate dead and unreachable grammar rules) of finite automata.
-  This program executes the token load (reserved words, operators, special symbols, etc...) and 
+  This program executes the token load (reserved words, operators, special symbols, etc...) and
   Regular Grammars (RG) from a given text file.
 
   Input: file with the token and/or grammar relations from a hypothetical language.
-  
-  Output: deterministic finite automaton (DFA), free from dead and unreacheable states into a CSV file table representation.
 
+  Output: deterministic finite automaton (DFA), free from dead and unreacheable states into a CSV file table representation.
 """
 
 def verify_args():
@@ -27,7 +26,6 @@ def verify_args():
 def main():
     """ Main program function, responsible for calling all other methods and constructors """
     verify_args()
-        
 
     # name of the file with the GR and tokens
     filename = str(argv[1])
