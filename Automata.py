@@ -3,6 +3,9 @@ import collections
 class Automata():
     def __init__(self, filename, debug=False):
         """ Constructor """
+        self.initial_symbol = "S"
+        self.epsilon_symbol = "&"
+        self.dead = "XXX"
         self.filename = filename
         self.debug = debug
         self.last_id = -1
@@ -21,20 +24,28 @@ class Automata():
         self.grammar_rules = self.clean_rules(self.grammar_rules)
         self.table = self.add_rules_to_dict(self.grammar_rules, self.last_id)
 
-        while self.current_state != self.last_state:
-            asd = self.determinize(self.table, self.current_state)
-            self.table = asd[0]
-            self.last_state = asd[1]
-            self.current_state = asd[2]
-
-        for key in self.table:
-            print(key, self.table[key])
-
         if (self.debug):
             print("\nInput filename: \n\t{}".format(self.filename))
             print("\nConteudo do arquivo:\n\t{}".format(self.data))
             print("\nConteudo dividido entre token e GR:\n\tTokens:\t{}\n\tGR:\t{}\n\n".format(self.data_splitted[0], self.data_splitted[1]))
             self.print_dict(self.table, 0)
+
+        while self.current_state != self.last_state:
+            temp = self.determinize(self.table)
+
+            if temp == None:
+                break
+            else:
+                self.table = temp[0]
+                self.last_state = temp[1]
+                self.current_state = temp[2]
+
+        self.table = self.remove_useless(self.table)
+        self.table = self.remove_unreachable(self.table)
+
+        print("\nDETERMINIZADO:")
+        for key in self.table:
+            print(key, "->", self.table[key])
 
     def clean_file_data(self, filename):
         """
@@ -161,19 +172,20 @@ class Automata():
             else:
                 print(spacing * (indent+1) + str(value))
 
-    def determinize(self, table, cur_state):
-        new_table = {}
-        last_key = sorted(list(table.keys()))[-2]
+    def determinize(self, table):
+        try:
+            last_key = sorted(list(table.keys()))[-2]
+        except:
+            last_key = "A"
+
         next_avaiable_key = chr(ord(last_key)+1)
+        new_table = {}
         pra_onde_vai = []
 
         for key in table.keys():
-            if cur_state == last_key: return table,last_key,key
-
             seen = []
             for i in range(len(table[key])):
                 if list(table[key][i])[0] in seen:
-
                     for j in range(len(table[key])):
                         try:
                             pra_onde_vai.append(table[key][j][list(table[key][i])[0]])
@@ -196,13 +208,53 @@ class Automata():
 
                     asd = []
                     for j in pra_onde_vai:
-                        print("PARTES", j, table[j])
+                        try:
+                            print("Regra:", j, "->", table[j])
+                        except:
+                            print(f"\n\nErro: Verifique se a REGRA: `{j}` existe")
+                            exit()
                         for jj in table[j]:
                             asd.append(jj)
                     print("FINAL", asd)
                     new_table = table.copy()
                     new_table[next_avaiable_key] = asd
 
-                    return new_table,last_key,key
+                    return new_table, last_key, key
                 else:
                     seen.append(list(table[key][i])[0])
+
+    def remove_useless(self, table):
+        table_final = {}
+        for key in table.keys():
+            new_table = {}
+            seen = []
+            keep = []
+
+            for i in range(len(table[key])):
+                seen.append(list(table[key][i])[0])
+
+            keep = (list(dict.fromkeys(seen)))
+            for i in range(len(keep)):
+                new_table.update(table[key][i])
+
+            table_final.update({key: new_table})
+
+        return table_final
+
+    def remove_unreachable(self, table):
+        new_table = {}
+        new_table.update({self.initial_symbol: table[self.initial_symbol]})
+        seen = list(table[self.initial_symbol].values())
+
+        # store all key reached through initial_symbol
+        for key in seen:
+            for i in list(table[key].values()):
+                if i not in seen and i != self.epsilon_symbol:
+                    seen.append(i)
+
+        # add rules to a new dictionary
+        seen = list(dict.fromkeys(seen))
+        for key in table:
+            if key in seen:
+                new_table.update({key: table[key]})
+        return new_table
