@@ -17,6 +17,11 @@ class Automata():
         # data sorted into array with tokens and grammar rules
         [self.tokens, self.grammar_rules] = self.separate_token_and_rules(self.data)
         self.table = self.add_rules_to_dict(self.grammar_rules, self.last_id)
+        self.table = self.add_tokens_to_dict(self.table, self.tokens, self.last_id)
+
+        print("\nANTES DE DETERMINIZAR:")
+        for key in self.table:
+            print(key, "->", self.table[key])
 
         # loop through the dictionary from first to last key
         # check and determinize each line
@@ -29,6 +34,9 @@ class Automata():
                 self.last_state = temp[1]
                 self.current_state = temp[2]
 
+        print("\nDETERMINIZADO:")
+        for key in self.table:
+            print(key, "->", self.table[key])
         self.table = self.add_dead_state(self.table)
         self.table = self.remove_useless(self.table)
         # remove rules from dict which are not reacheble via the initial_symbol
@@ -119,16 +127,29 @@ class Automata():
             id += 1
         return table
 
-    def add_tokens_to_dict(self, token_list, id):
+    def add_tokens_to_dict(self, table, token_list, id):
         """ Input: arg1 list of tokens, arg2 identifier """
-        table = {}
-        for i in range(len(token_list)):
-            for j in range(len(token_list[i])):
-                if i == 0:
-                    table[0] = str(token_list[i][j])+str(id+1)
-                else:
-                    table[id] = str(token_list[i][j])+str(id+1)
-                    id += 1
+        # print("Table\t", table)
+        # print("Tokens\t", token_list)
+
+        try:
+            last_key = sorted(list(table.keys()))[-2]
+        except:
+            last_key = "A"
+
+        next_avaiable_key = chr(ord(last_key)+1)
+        for token in token_list:
+            # print("\ntoken:\t", token)
+            for letter in token:
+                table.update({last_key : [{
+                    letter: next_avaiable_key
+                }]})
+                # print("letter:\t", letter)
+                last_key = chr(ord(last_key) + 1)
+                next_avaiable_key = chr(ord(last_key)+1)
+
+        # for key in table:
+        #     print(key, table[key])
         return table
 
     def determinize(self, table):

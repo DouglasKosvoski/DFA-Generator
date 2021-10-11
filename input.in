@@ -4,4 +4,7 @@
 S ::= aA | bB | b | &
 A ::= aS | bC
 B ::= aA | &
-C ::= aS
+C ::= aC
+
+asd
+xvc
