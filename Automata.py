@@ -1,106 +1,78 @@
-import collections
-
 class Automata():
     def __init__(self, filename, debug=False):
         """ Constructor """
         self.initial_symbol = "S"
         self.epsilon_symbol = "&"
-        self.dead = "XXX"
+        self.end = "Y"
+        self.dead = "Z"
         self.filename = filename
         self.debug = debug
         self.last_id = -1
         self.table = {}
-        self.current_state = 0
-        self.last_state = 1
+        self.current_state = self.initial_symbol
+        self.last_state = 0
 
         # raw file data
-        self.data = self.clean_file_data(self.filename)
-        # data sorted into a 2D array with tokens and grammar rules
-        self.data_splitted = self.separate_token_and_rules(self.data)
-        # tokens and rules separated into different lists
-        self.tokens, self.grammar_rules = self.data_splitted
-        # basically remove all non important characters from every rule
-        # the list with this 'non important' characters are inside the function
-        self.grammar_rules = self.clean_rules(self.grammar_rules)
+        self.data = self.parse_file_data(self.filename)
+        # data sorted into array with tokens and grammar rules
+        [self.tokens, self.grammar_rules] = self.separate_token_and_rules(self.data)
         self.table = self.add_rules_to_dict(self.grammar_rules, self.last_id)
 
-        if (self.debug):
-            print("\nInput filename: \n\t{}".format(self.filename))
-            print("\nConteudo do arquivo:\n\t{}".format(self.data))
-            print("\nConteudo dividido entre token e GR:\n\tTokens:\t{}\n\tGR:\t{}\n\n".format(self.data_splitted[0], self.data_splitted[1]))
-            self.print_dict(self.table, 0)
-
+        # loop through the dictionary from first to last key
+        # check and determinize each line
         while self.current_state != self.last_state:
             temp = self.determinize(self.table)
-
-            if temp == None:
-                break
-            else:
+            # none is returned upon reaching last dict key
+            if temp != None:
+                # update dictionary with new data
                 self.table = temp[0]
                 self.last_state = temp[1]
                 self.current_state = temp[2]
 
+        self.table = self.add_dead_state(self.table)
         self.table = self.remove_useless(self.table)
+        # remove rules from dict which are not reacheble via the initial_symbol
         self.table = self.remove_unreachable(self.table)
 
-        print("\nDETERMINIZADO:")
+        print("\nDETERMINIZADO e MINIMIZADO:")
         for key in self.table:
             print(key, "->", self.table[key])
 
-    def clean_file_data(self, filename):
+    def parse_file_data(self, filename):
         """
         Remove any blank line from the input file
         and return the file content as an arraylist
-        input: filename with tokens and grammar
-        output: list of strings with each line from the file
+            input: filename with tokens and grammar
+            output: list of strings with each line from the file
         """
         try:
             with open(filename) as file:
                 data = file.read()
                 data = data.split("\n")
-                clean_data = []
 
+            clean_data = []
             for line in data:
-                if line != "":
+                if line != "" and not line.startswith("//"):
                     clean_data.append(line)
             return clean_data
         except:
             print("Problema com o arquivo de entrada, verifique se o mesmo existe")
             exit()
 
-    def print_data(self, data):
-        """ print data line by line from arraylist """
-        for line in data:
-            print(line)
-
-    def check_line_content(self, line, declarative_symbol="="):
-        """ check if line is a token or a grammar rule """
-        if declarative_symbol in line:
-            if (self.debug):
-                print("\t'{0}' is a Grammar Rule".format(line))
-            return 1
-        else:
-            if (self.debug):
-                print("\t'{0}' is a Token".format(line))
-            return 0
-
     def separate_token_and_rules(self, data):
         """
-        Sort tokens from the GR
+        Separate tokens from the GR
         input: raw data
         output: tuple in format (list[], list[]) with tokens and rules accordingly
         """
         tokens = []
         rules = []
-
-        if (self.debug):
-            print("Analisando o arquivo:")
         for line in data:
-            if self.check_line_content(line):
+            if "=" in line:
                 rules.append(line)
             else:
                 tokens.append(line)
-        return (tokens, rules)
+        return (tokens, self.clean_rules(rules))
 
     def clean_rules(self, rules_list):
         """
@@ -119,27 +91,32 @@ class Automata():
             for separator in separators:
                 temp_rule = temp_rule.replace(separator, "")
             # remove empty spaces
-
             temp_rule = temp_rule.split(" ")
-            rule = [j for j in temp_rule if j!=""]
+            rule = []
+            for j in temp_rule:
+                if j == self.epsilon_symbol or j.islower():
+                    rule.append(j+self.dead)
+                # elif j.islower() and len(j) < 2:
+                #     rule.append(j+self.end)
+                elif j != "":
+                    rule.append(j)
+
             cleaned_rules.append(rule)
         return cleaned_rules
 
     def add_rules_to_dict(self, rules_list, id):
         """ Input: arg1 list of GR rules, arg2 identifier """
-
         table = {}
         for rule in rules_list:
             identificador = rule[0]
             regras = {}
 
             nao_terminais = [{str(rule[i][0]) : rule[i][-1]} for i in range(1, len(rule))]
-            regras.update({identificador : nao_terminais})
+            regras.update({
+                identificador : nao_terminais
+            })
             table.update(regras)
             id += 1
-
-        # for key in table:
-        #     print(f'KEY: {key} \t VALUE: {table[key]}')
         return table
 
     def add_tokens_to_dict(self, token_list, id):
@@ -147,7 +124,6 @@ class Automata():
         table = {}
         for i in range(len(token_list)):
             for j in range(len(token_list[i])):
-                # print("Id:",id)
                 if i == 0:
                     table[0] = str(token_list[i][j])+str(id+1)
                 else:
@@ -155,44 +131,26 @@ class Automata():
                     id += 1
         return table
 
-    def print_dict(self, dd, indent=0):
-        """
-        Print dictionary in a (key, data) format
-        input: dictionary type
-        output: print data to terminal
-        """
-        # basic custom print for the dictionary
-        # for key, rule in dd.items():
-        #     print("Identifier: {0}\n\tRules: {1}".format(key, rule))
-        spacing = "    "
-        for key, value in dd.items():
-            print(spacing * indent + str(key))
-            if isinstance(value, dict):
-                self.print_dict(value, indent+1)
-            else:
-                print(spacing * (indent+1) + str(value))
-
     def determinize(self, table):
+        # if file have only one rule
         try:
             last_key = sorted(list(table.keys()))[-2]
         except:
             last_key = "A"
-
         next_avaiable_key = chr(ord(last_key)+1)
-        new_table = {}
-        pra_onde_vai = []
 
         for key in table.keys():
             seen = []
             for i in range(len(table[key])):
                 if list(table[key][i])[0] in seen:
+                    pra_onde_vai = []
                     for j in range(len(table[key])):
                         try:
                             pra_onde_vai.append(table[key][j][list(table[key][i])[0]])
                         except:
                             pass
 
-                    print(f"\n\nDUPLICATE -> state:`{key}` prefix:`{list(table[key][i])[0]}` sufix:{pra_onde_vai}")
+                    print(f"\nDUPLICATE -> state:`{key}` prefix:`{list(table[key][i])[0]}` sufix:{pra_onde_vai}")
 
                     remaining = {}
                     for j in range(len(table[key])):
@@ -226,20 +184,22 @@ class Automata():
     def remove_useless(self, table):
         table_final = {}
         for key in table.keys():
-            new_table = {}
             seen = []
-            keep = []
-
             for i in range(len(table[key])):
                 seen.append(list(table[key][i])[0])
 
+            keep = []
+            new_table = {}
             keep = (list(dict.fromkeys(seen)))
             for i in range(len(keep)):
                 new_table.update(table[key][i])
 
             table_final.update({key: new_table})
-
         return table_final
+
+    def add_dead_state(self, table):
+        table[self.dead] = {}
+        return table
 
     def remove_unreachable(self, table):
         new_table = {}

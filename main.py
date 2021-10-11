@@ -29,7 +29,7 @@ def main():
 
     # name of the file with the GR and tokens
     filename = str(argv[1])
-    automata = Automata(filename, debug=False)
+    automata = Automata(filename, debug=True)
 
 if __name__ == "__main__":
 	"""	blocks other script from calling this main.py file

@@ -1,2 +1,7 @@
-A ::= aB | bC | aF
+// initial_symbol = "S"
+// epsilon_symbol = "&"
 
+S ::= aA | bB | b | &
+A ::= aS | bC
+B ::= aA | &
+C ::= aS
