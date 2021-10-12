@@ -22,10 +22,10 @@ class Automata():
 
         if self.debug:
             print("Filename:\n\t", self.filename)
-            print("\nData:\n\t", end="")
-            [print(i, end="\n\t") for i in self.data]
+            # print("\nData:\n\t", end="")
+            # [print(i, end="\n\t") for i in self.data]
             print("\nTokens:\n\t", end="")
-            [print(i, end="\n\t") for i in self.tokens]
+            [print(f"`{i}`", end="\n\t") for i in self.tokens]
             print("\nGRs:\n\t", end="")
             [print(i, end="\n\t") for i in self.grammar_rules]
 
@@ -135,17 +135,34 @@ class Automata():
         return table
 
     def add_tokens_to_dict(self, table, token_list, id):
-        try:
-            last_key = sorted(list(table.keys()))[-2]
-        except:
-            last_key = "A"
-
-        next_avaiable_key = chr(ord(last_key) + 1)
+        last_key = ""
+        next_avaiable_key = ""
         for token in token_list:
             for letter in token:
-                table.update({last_key : [{letter: next_avaiable_key}]})
-                last_key = chr(ord(last_key) + 1)
+                try:
+                    last_key = sorted(list(table.keys()))[-2]
+                except:
+                    last_key = "A"
                 next_avaiable_key = chr(ord(last_key) + 1)
+
+                # primeiro simbolo to token
+                if letter == token[0]:
+                    last_key = self.initial_symbol
+                    new_entry = {"S" : table[self.initial_symbol]}
+                    new_entry[self.initial_symbol].append({letter : next_avaiable_key})
+                    table.update(new_entry)
+
+                # ultimo simbolo to token
+                elif letter == token[-1]:
+                    next_avaiable_key = self.dead
+                    last_key = chr(ord(last_key) + 1)
+                    table.update({last_key : [{letter: next_avaiable_key}]})
+
+                else:
+                    last_key = chr(ord(last_key) + 1)
+                    next_avaiable_key = chr(ord(last_key) + 1)
+                    table.update({last_key : [{letter: next_avaiable_key}]})
+
         return table
 
     def determinize(self, table):
@@ -171,7 +188,7 @@ class Automata():
                             pass
 
                     if self.debug:
-                        print(f"\nDUPLICATE -> state:`{key}` prefix:`{list(table[key][i])[0]}` sufix:{pra_onde_vai}")
+                        print(f"\nINDETERMINIZACAO -> estado:`{key}` prefixo:`{list(table[key][i])[0]}` sufixo:{pra_onde_vai}")
 
                     remaining = {}
                     for j in range(len(table[key])):
@@ -192,7 +209,7 @@ class Automata():
                             exit()
                         [asd.append(k) for k in table[j]]
                     if self.debug:
-                        print(f"Nova Regra: {next_avaiable_key} -> {asd}")
+                        print(f"Removido a Indeterminacao\nNova Regra: {next_avaiable_key} -> {asd}")
                     new_table = table.copy()
                     new_table[next_avaiable_key] = asd
                     return new_table, last_key, key

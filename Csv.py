@@ -39,12 +39,12 @@ class Csv(object):
                         line.append(data[key][str(letter)])
                     except:
                         # caso o prefixo nao tenha terminal concatenado, adiciona o estado de erro
-                        line.append("X")
+                        line.append("ERRO")
                         continue
                 csv_writer.writerow(line)
 
             # adiciona estado de erro
-            last_line = ["X"]
+            last_line = ["ERRO"]
             # preenche o estado dos erros com hifens, para todo o alfabeto e numerias
             [last_line.append("-") for i in range(97, 133)]
             csv_writer.writerow(last_line)

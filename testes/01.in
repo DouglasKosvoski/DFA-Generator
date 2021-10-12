@@ -1,0 +1,5 @@
+S ::= aB | aC | bD | cC | d
+A ::= bC | aD | aB
+B ::= bD | cC | e
+C ::= dD
+D ::= bB | bC
