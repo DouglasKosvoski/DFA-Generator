@@ -18,12 +18,21 @@ class Automata():
         [self.tokens, self.grammar_rules] = self.separate_token_and_rules(self.data)
         self.table = self.add_rules_to_dict(self.grammar_rules, self.last_id)
         self.table = self.add_tokens_to_dict(self.table, self.tokens, self.last_id)
-
-        print("\nANTES DE DETERMINIZAR:")
-        for key in self.table:
-            print(key, "->", self.table[key])
-
         self.table = self.add_dead_state(self.table)
+
+        if self.debug:
+            print("Filename:\n\t", self.filename)
+            print("\nData:\n\t", end="")
+            [print(i, end="\n\t") for i in self.data]
+            print("\nTokens:\n\t", end="")
+            [print(i, end="\n\t") for i in self.tokens]
+            print("\nGRs:\n\t", end="")
+            [print(i, end="\n\t") for i in self.grammar_rules]
+
+            print("\nANTES DE DETERMINIZAR:")
+            for key in self.table:
+                print(key, "->", self.table[key])
+
         # loop through the dictionary from first to last key
         # check and determinize each line
         while self.current_state != self.last_state:
@@ -34,17 +43,22 @@ class Automata():
                 self.table = temp[0]
                 self.last_state = temp[1]
                 self.current_state = temp[2]
+            else:
+                break
 
-        print("\nDETERMINIZADO:")
-        for key in self.table:
-            print(key, "->", self.table[key])
+        if self.debug:
+            print("\nDETERMINIZADO:")
+            for key in self.table:
+                print(key, "->", self.table[key])
+
         self.table = self.remove_useless(self.table)
         # remove rules from dict which are not reacheble via the initial_symbol
         self.table = self.remove_unreachable(self.table)
 
-        print("\nDETERMINIZADO e MINIMIZADO:")
-        for key in self.table:
-            print(key, "->", self.table[key])
+        if self.debug:
+            print("\nDETERMINIZADO e MINIMIZADO:")
+            for key in self.table:
+                print(key, "->", self.table[key])
 
     def parse_file_data(self, filename):
         """
@@ -139,9 +153,13 @@ class Automata():
             last_key = sorted(list(table.keys()))[-3]
         except:
             last_key = "A"
-        next_avaiable_key = chr(ord(last_key) + 1)
 
+        next_avaiable_key = chr(ord(last_key) + 1)
+        last_accessed_key = ""
+
+        new_table = {}
         for key in table.keys():
+            last_accessed_key = key
             seen = []
             for i in range(len(table[key])):
                 if list(table[key][i])[0] in seen:
@@ -152,7 +170,8 @@ class Automata():
                         except:
                             pass
 
-                    print(f"\nDUPLICATE -> state:`{key}` prefix:`{list(table[key][i])[0]}` sufix:{pra_onde_vai}")
+                    if self.debug:
+                        print(f"\nDUPLICATE -> state:`{key}` prefix:`{list(table[key][i])[0]}` sufix:{pra_onde_vai}")
 
                     remaining = {}
                     for j in range(len(table[key])):
@@ -166,13 +185,14 @@ class Automata():
                     asd = []
                     for j in pra_onde_vai:
                         try:
-                            print("RegraAtual:", j, "->", table[j])
+                            if self.debug:
+                                print(f"RegraAtual: {j} -> {table[j]}")
                         except:
                             print(f"\n\nErro: Verifique se a REGRA: `{j}` existe")
                             exit()
                         [asd.append(k) for k in table[j]]
-
-                    print("Nova Regra ->", asd)
+                    if self.debug:
+                        print(f"Nova Regra: {next_avaiable_key} -> {asd}")
                     new_table = table.copy()
                     new_table[next_avaiable_key] = asd
                     return new_table, last_key, key
