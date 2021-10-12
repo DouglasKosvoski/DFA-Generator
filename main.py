@@ -32,7 +32,6 @@ def main():
     filename = str(argv[1])
     automata = Automata(filename, debug=True)
     csv_filename = "output.csv"
-    data = ["asdasd", "asdd", "xaaxasd"]
     csv = Csv(csv_filename, automata.table)
 
 if __name__ == "__main__":

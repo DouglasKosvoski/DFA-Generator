@@ -1,10 +1,4 @@
-// initial_symbol = "S"
-// epsilon_symbol = "&"
-
 S ::= aA | bB | b | &
 A ::= aS | bC
 B ::= aA | &
 C ::= aC
-
-asd
-xvc

@@ -23,6 +23,7 @@ class Automata():
         for key in self.table:
             print(key, "->", self.table[key])
 
+        self.table = self.add_dead_state(self.table)
         # loop through the dictionary from first to last key
         # check and determinize each line
         while self.current_state != self.last_state:
@@ -37,7 +38,6 @@ class Automata():
         print("\nDETERMINIZADO:")
         for key in self.table:
             print(key, "->", self.table[key])
-        self.table = self.add_dead_state(self.table)
         self.table = self.remove_useless(self.table)
         # remove rules from dict which are not reacheble via the initial_symbol
         self.table = self.remove_unreachable(self.table)
@@ -135,9 +135,8 @@ class Automata():
         return table
 
     def determinize(self, table):
-        # if file have only one rule
         try:
-            last_key = sorted(list(table.keys()))[-2]
+            last_key = sorted(list(table.keys()))[-3]
         except:
             last_key = "A"
         next_avaiable_key = chr(ord(last_key) + 1)
@@ -160,19 +159,20 @@ class Automata():
                         if list(table[key][j])[0] != list(table[key][i])[0]:
                             remaining.update(table[key][j])
 
+                    # atualiza a regra atual que apresenta ambiguidade
                     table[key] = [{list(table[key][i])[0]: next_avaiable_key}]
                     {table[key].append({j: remaining.get(j)}) for j in remaining}
 
                     asd = []
                     for j in pra_onde_vai:
                         try:
-                            print("Regra:", j, "->", table[j])
+                            print("RegraAtual:", j, "->", table[j])
                         except:
                             print(f"\n\nErro: Verifique se a REGRA: `{j}` existe")
                             exit()
-                        for jj in table[j]:
-                            asd.append(jj)
-                    print("FINAL", asd)
+                        [asd.append(k) for k in table[j]]
+
+                    print("Nova Regra ->", asd)
                     new_table = table.copy()
                     new_table[next_avaiable_key] = asd
                     return new_table, last_key, key
