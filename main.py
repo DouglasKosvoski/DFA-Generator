@@ -1,5 +1,6 @@
 from sys import argv, exit
 from Automata import *
+from Csv import *
 
 """
 Author: Douglas Kosvoski
@@ -30,6 +31,9 @@ def main():
     # name of the file with the GR and tokens
     filename = str(argv[1])
     automata = Automata(filename, debug=True)
+    csv_filename = "output.csv"
+    data = ["asdasd", "asdd", "xaaxasd"]
+    csv = Csv(csv_filename, automata.table)
 
 if __name__ == "__main__":
 	"""	blocks other script from calling this main.py file

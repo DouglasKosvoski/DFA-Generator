@@ -70,8 +70,8 @@ class Automata():
     def separate_token_and_rules(self, data):
         """
         Separate tokens from the GR
-        input: raw data
-        output: tuple in format (list[], list[]) with tokens and rules accordingly
+            input: raw data
+            output: tuple in format (list[], list[]) with tokens and rules accordingly
         """
         tokens = []
         rules = []
@@ -94,7 +94,6 @@ class Automata():
         # for each rule in the list
         for i in range(len(rules_list)):
             temp_rule = rules_list[i]
-
             # remove the separator
             for separator in separators:
                 temp_rule = temp_rule.replace(separator, "")
@@ -104,11 +103,8 @@ class Automata():
             for j in temp_rule:
                 if j == self.epsilon_symbol or j.islower():
                     rule.append(j+self.dead)
-                # elif j.islower() and len(j) < 2:
-                #     rule.append(j+self.end)
                 elif j != "":
                     rule.append(j)
-
             cleaned_rules.append(rule)
         return cleaned_rules
 
@@ -118,38 +114,24 @@ class Automata():
         for rule in rules_list:
             identificador = rule[0]
             regras = {}
-
             nao_terminais = [{str(rule[i][0]) : rule[i][-1]} for i in range(1, len(rule))]
-            regras.update({
-                identificador : nao_terminais
-            })
+            regras.update({identificador : nao_terminais})
             table.update(regras)
             id += 1
         return table
 
     def add_tokens_to_dict(self, table, token_list, id):
-        """ Input: arg1 list of tokens, arg2 identifier """
-        # print("Table\t", table)
-        # print("Tokens\t", token_list)
-
         try:
             last_key = sorted(list(table.keys()))[-2]
         except:
             last_key = "A"
 
-        next_avaiable_key = chr(ord(last_key)+1)
+        next_avaiable_key = chr(ord(last_key) + 1)
         for token in token_list:
-            # print("\ntoken:\t", token)
             for letter in token:
-                table.update({last_key : [{
-                    letter: next_avaiable_key
-                }]})
-                # print("letter:\t", letter)
+                table.update({last_key : [{letter: next_avaiable_key}]})
                 last_key = chr(ord(last_key) + 1)
-                next_avaiable_key = chr(ord(last_key)+1)
-
-        # for key in table:
-        #     print(key, table[key])
+                next_avaiable_key = chr(ord(last_key) + 1)
         return table
 
     def determinize(self, table):
@@ -158,7 +140,7 @@ class Automata():
             last_key = sorted(list(table.keys()))[-2]
         except:
             last_key = "A"
-        next_avaiable_key = chr(ord(last_key)+1)
+        next_avaiable_key = chr(ord(last_key) + 1)
 
         for key in table.keys():
             seen = []
@@ -178,12 +160,8 @@ class Automata():
                         if list(table[key][j])[0] != list(table[key][i])[0]:
                             remaining.update(table[key][j])
 
-                    table[key] = [
-                        {
-                            list(table[key][i])[0]: next_avaiable_key
-                        },
-                    ]
-                    {table[key].append({j:remaining.get(j)}) for j in remaining}
+                    table[key] = [{list(table[key][i])[0]: next_avaiable_key}]
+                    {table[key].append({j: remaining.get(j)}) for j in remaining}
 
                     asd = []
                     for j in pra_onde_vai:
@@ -197,7 +175,6 @@ class Automata():
                     print("FINAL", asd)
                     new_table = table.copy()
                     new_table[next_avaiable_key] = asd
-
                     return new_table, last_key, key
                 else:
                     seen.append(list(table[key][i])[0])
@@ -209,13 +186,12 @@ class Automata():
             for i in range(len(table[key])):
                 seen.append(list(table[key][i])[0])
 
-            keep = []
             new_table = {}
             keep = (list(dict.fromkeys(seen)))
             for i in range(len(keep)):
                 new_table.update(table[key][i])
-
             table_final.update({key: new_table})
+
         return table_final
 
     def add_dead_state(self, table):
@@ -234,8 +210,7 @@ class Automata():
                     seen.append(i)
 
         # add rules to a new dictionary
-        seen = list(dict.fromkeys(seen))
         for key in table:
-            if key in seen:
+            if key in list(dict.fromkeys(seen)):
                 new_table.update({key: table[key]})
         return new_table
