@@ -3,11 +3,9 @@ class Automata():
         """ Constructor """
         self.initial_symbol = "S"
         self.epsilon_symbol = "&"
-        self.end = "Y"
         self.dead = "Z"
         self.filename = filename
         self.debug = debug
-        self.last_id = -1
         self.table = {}
         self.current_state = self.initial_symbol
         self.last_state = 0
@@ -16,8 +14,8 @@ class Automata():
         self.data = self.parse_file_data(self.filename)
         # data sorted into array with tokens and grammar rules
         [self.tokens, self.grammar_rules] = self.separate_token_and_rules(self.data)
-        self.table = self.add_rules_to_dict(self.grammar_rules, self.last_id)
-        self.table = self.add_tokens_to_dict(self.table, self.tokens, self.last_id)
+        self.table = self.add_rules_to_dict(self.grammar_rules)
+        self.table = self.add_tokens_to_dict(self.table, self.tokens)
         self.table = self.add_dead_state(self.table)
 
         if self.debug:
@@ -49,7 +47,7 @@ class Automata():
             for key in self.table:
                 print(key, "->", self.table[key])
 
-        self.table = self.remove_useless(self.table)
+        self.table = self.remove_duplicate(self.table)
         # remove rules from dict which are not reacheble via the initial_symbol
         self.table = self.remove_unreachable(self.table)
 
@@ -120,7 +118,7 @@ class Automata():
             cleaned_rules.append(rule)
         return cleaned_rules
 
-    def add_rules_to_dict(self, rules_list, id):
+    def add_rules_to_dict(self, rules_list):
         """ Input: arg1 list of GR rules, arg2 identifier """
         table = {}
         for rule in rules_list:
@@ -129,10 +127,9 @@ class Automata():
             nao_terminais = [{str(rule[i][0]) : rule[i][-1]} for i in range(1, len(rule))]
             regras.update({identificador : nao_terminais})
             table.update(regras)
-            id += 1
         return table
 
-    def add_tokens_to_dict(self, table, token_list, id):
+    def add_tokens_to_dict(self, table, token_list):
         last_key = ""
         next_avaiable_key = ""
         for token in token_list:
@@ -158,7 +155,6 @@ class Automata():
                     last_key = chr(ord(last_key) + 1)
                     next_avaiable_key = chr(ord(last_key) + 1)
                     table.update({last_key : [{letter: next_avaiable_key}]})
-
         return table
 
     def determinize(self, table):
@@ -204,15 +200,17 @@ class Automata():
                             print(f"\n\nErro: Verifique se a REGRA: `{j}` existe")
                             exit()
                         [asd.append(k) for k in table[j]]
+
                     if self.debug:
                         print(f"Removido a Indeterminacao\nNova Regra: {next_avaiable_key} -> {asd}")
+
                     new_table = table.copy()
                     new_table[next_avaiable_key] = asd
                     return new_table, last_key, key
                 else:
                     seen.append(list(table[key][i])[0])
 
-    def remove_useless(self, table):
+    def remove_duplicate(self, table):
         table_final = {}
         for key in table.keys():
             seen = []

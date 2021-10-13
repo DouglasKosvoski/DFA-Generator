@@ -1,3 +1,5 @@
+// epsilon = '&'
+
 <S> ::= a<B> | c<C> | d<C>
 <A> ::= b<C> | a<E>
 <B> ::= b<D> | c<C> | d<C>

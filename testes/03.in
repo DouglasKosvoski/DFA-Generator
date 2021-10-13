@@ -1,3 +1,5 @@
+// epsilon = '&'
+
 S ::= aA | bB | b | &
 A ::= aS | bC
 B ::= aA | &
