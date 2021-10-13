@@ -22,8 +22,6 @@ class Automata():
 
         if self.debug:
             print("Filename:\n\t", self.filename)
-            # print("\nData:\n\t", end="")
-            # [print(i, end="\n\t") for i in self.data]
             print("\nTokens:\n\t", end="")
             [print(f"`{i}`", end="\n\t") for i in self.tokens]
             print("\nGRs:\n\t", end="")
@@ -83,7 +81,7 @@ class Automata():
 
     def separate_token_and_rules(self, data):
         """
-        Separate tokens from the GR
+        Separate tokens from the GRs
             input: raw data
             output: tuple in format (list[], list[]) with tokens and rules accordingly
         """
@@ -115,7 +113,7 @@ class Automata():
             temp_rule = temp_rule.split(" ")
             rule = []
             for j in temp_rule:
-                if j == self.epsilon_symbol or j.islower():
+                if j == self.epsilon_symbol or j.islower() or j.isnumeric():
                     rule.append(j+self.dead)
                 elif j != "":
                     rule.append(j)
@@ -151,13 +149,11 @@ class Automata():
                     new_entry = {"S" : table[self.initial_symbol]}
                     new_entry[self.initial_symbol].append({letter : next_avaiable_key})
                     table.update(new_entry)
-
                 # ultimo simbolo to token
                 elif letter == token[-1]:
                     next_avaiable_key = self.dead
                     last_key = chr(ord(last_key) + 1)
                     table.update({last_key : [{letter: next_avaiable_key}]})
-
                 else:
                     last_key = chr(ord(last_key) + 1)
                     next_avaiable_key = chr(ord(last_key) + 1)
@@ -235,19 +231,19 @@ class Automata():
         table[self.dead] = {}
         return table
 
-    def remove_unreachable(self, table):
-        new_table = {}
-        new_table.update({self.initial_symbol: table[self.initial_symbol]})
-        seen = list(table[self.initial_symbol].values())
+    def remove_unreachable(self, afd):
+        afd_minimized = {}
+        afd_minimized.update({self.initial_symbol: afd[self.initial_symbol]})
+        reached = list(afd[self.initial_symbol].values())
 
         # store all key reached through initial_symbol
-        for key in seen:
-            for i in list(table[key].values()):
-                if i not in seen and i != self.epsilon_symbol:
-                    seen.append(i)
+        for key in reached:
+            for i in list(afd[key].values()):
+                if i not in reached and i != self.epsilon_symbol:
+                    reached.append(i)
 
         # add rules to a new dictionary
-        for key in table:
-            if key in list(dict.fromkeys(seen)):
-                new_table.update({key: table[key]})
-        return new_table
+        for key in afd:
+            if key in list(dict.fromkeys(reached)):
+                afd_minimized.update({key: afd[key]})
+        return afd_minimized
