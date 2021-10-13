@@ -29,7 +29,7 @@ class Csv(object):
                 # adiciona o nao terminal que da o nome ao estado
                 line = [key]
                 # se o estado apresenta epsilon producao, adiciona asteristico em frente a regra
-                if "&" in list(data[key].keys()):
+                if "&" in list(data[key].keys()) or key == "Z":
                     line = ["*"+key]
 
                 # para cada possivel sufixo presente no header
@@ -39,12 +39,15 @@ class Csv(object):
                         line.append(data[key][str(letter)])
                     except:
                         # caso o prefixo nao tenha terminal concatenado, adiciona o estado de erro
-                        line.append("X")
+                        if key == "Z":
+                            line.append("-")
+                        else:
+                            line.append("X")
                         continue
                 csv_writer.writerow(line)
 
             # adiciona estado de erro
             last_line = ["X"]
             # preenche o estado dos erros com hifens, para todo o alfabeto e numerias
-            [last_line.append("-") for i in range(97, 133)]
+            [last_line.append("X") for i in range(97, 133)]
             csv_writer.writerow(last_line)
